@@ -4,7 +4,7 @@ import { Category, classifyUri } from './classifier';
 import { isLineAnImport } from './importDetector';
 
 export interface EligibleSymbol {
-    kind: 'class' | 'method' | 'function' | 'moduleVar' | 'import' | 'class-impl';
+    kind: 'type' | 'selector' | 'class' | 'method' | 'function' | 'moduleVar' | 'import' | 'class-impl';
     name: string;
     range: vscode.Range;
     selectionRange: vscode.Range;
@@ -16,6 +16,7 @@ export async function getEligibleSymbols(
     document: vscode.TextDocument,
     config: ResolvedConfig
 ): Promise<EligibleSymbol[]> {
+    if (document.languageId !== 'python') { return getGenericSymbols(document, config); }
     const symbols = await vscode.commands.executeCommand<vscode.DocumentSymbol[]>(
         'vscode.executeDocumentSymbolProvider',
         document.uri
@@ -120,4 +121,52 @@ async function resolveImportCategory(uri: vscode.Uri, position: vscode.Position)
     } catch {
         return 'global';
     }
+}
+
+
+/** Language-server symbols keep React components, aliases and declarations semantic. */
+async function getGenericSymbols(document: vscode.TextDocument, config: ResolvedConfig): Promise<EligibleSymbol[]> {
+    const provided = await vscode.commands.executeCommand<Array<vscode.DocumentSymbol | vscode.SymbolInformation>>(
+        'vscode.executeDocumentSymbolProvider', document.uri
+    ) || [];
+    const result: EligibleSymbol[] = [];
+    const style = ['css', 'scss', 'less', 'postcss'].includes(document.languageId);
+    const seen = new Set<string>();
+    const visit = (symbols: Array<vscode.DocumentSymbol | vscode.SymbolInformation>, topLevel: boolean) => {
+        for (const symbol of symbols) {
+            const hierarchical = 'selectionRange' in symbol;
+            const range = hierarchical ? symbol.range : symbol.location.range;
+            let selectionRange = hierarchical ? symbol.selectionRange : range;
+            // CSS providers may return the whole rule as the selection. Position
+            // the query on its first identifier rather than the selector prefix.
+            if (style) {
+                const line = document.lineAt(selectionRange.start.line).text;
+                const tail = line.slice(selectionRange.start.character);
+                const match = /[a-zA-Z_$-][\w$-]*/.exec(tail);
+                if (match) {
+                    const start = new vscode.Position(selectionRange.start.line, selectionRange.start.character + match.index);
+                    selectionRange = new vscode.Range(start, start.translate(0, match[0].length));
+                }
+            }
+            let kind: EligibleSymbol['kind'] | undefined;
+            if (style) {
+                if (symbol.kind === vscode.SymbolKind.Class || symbol.kind === vscode.SymbolKind.Module) { kind = 'selector'; }
+                else if (symbol.kind === vscode.SymbolKind.Variable || symbol.kind === vscode.SymbolKind.Constant) { kind = 'moduleVar'; }
+            } else {
+                if (symbol.kind === vscode.SymbolKind.Class && config.targets.classes) { kind = 'class'; }
+                else if ([vscode.SymbolKind.Interface, vscode.SymbolKind.Enum, vscode.SymbolKind.Struct, vscode.SymbolKind.TypeParameter].includes(symbol.kind) && config.targets.types) { kind = 'type'; }
+                else if ([vscode.SymbolKind.Method, vscode.SymbolKind.Constructor].includes(symbol.kind) && config.targets.methods) { kind = 'method'; }
+                else if (symbol.kind === vscode.SymbolKind.Function && config.targets.functions) { kind = 'function'; }
+                else if ([vscode.SymbolKind.Variable, vscode.SymbolKind.Constant].includes(symbol.kind) && topLevel && config.targets.moduleVariables) { kind = 'moduleVar'; }
+            }
+            const key = `${selectionRange.start.line}:${selectionRange.start.character}`;
+            if (kind && !seen.has(key)) {
+                seen.add(key);
+                result.push({kind, name: symbol.name, range, selectionRange, symbol: symbol as vscode.DocumentSymbol});
+            }
+            if (hierarchical && symbol.children.length) { visit(symbol.children, false); }
+        }
+    };
+    visit(provided, true);
+    return result;
 }

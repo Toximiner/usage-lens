@@ -3,11 +3,13 @@ import type { Category } from './classifier';
 
 export interface ResolvedConfig {
     enable: boolean;
+    languages: string[];
     files: {
         includeInitPy: boolean;
     };
     targets: {
         classes: boolean;
+        types: boolean;
         methods: boolean;
         functions: boolean;
         moduleVariables: boolean;
@@ -44,17 +46,19 @@ export function getConfig(uri?: vscode.Uri): ResolvedConfig {
         return configCache.get(key)!;
     }
 
-    const config = vscode.workspace.getConfiguration('pythonCodeLensLite', uri);
+    const config = vscode.workspace.getConfiguration('usageLens', uri);
     const resolved: ResolvedConfig = {
         enable: config.get<boolean>('enable', true),
+        languages: config.get<string[]>('languages', ['python','typescript','typescriptreact','javascript','javascriptreact','css','scss','less','postcss']),
         files: {
             includeInitPy: config.get<boolean>('files.includeInitPy', true),
         },
         targets: {
             classes: config.get<boolean>('targets.classes', true),
+            types: config.get<boolean>('targets.types', true),
             methods: config.get<boolean>('targets.methods', true),
             functions: config.get<boolean>('targets.functions', true),
-            moduleVariables: config.get<boolean>('targets.moduleVariables', false),
+            moduleVariables: config.get<boolean>('targets.moduleVariables', true),
             imports: {
                 project: config.get<boolean>('targets.imports.project', false),
                 venv: config.get<boolean>('targets.imports.venv', false),
@@ -63,14 +67,14 @@ export function getConfig(uri?: vscode.Uri): ResolvedConfig {
             }
         },
         references: {
-            filterImports: config.get<boolean>('references.filterImports', true),
+            filterImports: config.get<boolean>('references.filterImports', false),
             filterDefinitions: config.get<boolean>('references.filterDefinitions', true),
             filterSelf: config.get<boolean>('references.filterSelf', false),
             minCount: Math.max(0, config.get<number>('references.minCount', 0)),
-            showZero: config.get<boolean>('references.showZero', true),
+            showZero: config.get<boolean>('references.showZero', false),
         },
         lenses: {
-            showImplementations: config.get<boolean>('lenses.showImplementations', true),
+            showImplementations: config.get<boolean>('lenses.showImplementations', false),
         },
         clickAction: config.get<'peek' | 'reveal'>('clickAction', 'peek'),
         performance: {

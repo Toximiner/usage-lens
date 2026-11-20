@@ -10,15 +10,15 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Register CodeLens provider for python text files
     const codeLensProvider = vscode.languages.registerCodeLensProvider(
-        { language: 'python', scheme: 'file' },
+        { scheme: 'file' },
         provider
     );
     context.subscriptions.push(codeLensProvider, provider);
 
     // Register Commands
     context.subscriptions.push(
-        vscode.commands.registerCommand('pythonCodeLensLite.toggle', async () => {
-            const config = vscode.workspace.getConfiguration('pythonCodeLensLite');
+        vscode.commands.registerCommand('usageLens.toggle', async () => {
+            const config = vscode.workspace.getConfiguration('usageLens');
             const current = config.get<boolean>('enable');
             await config.update('enable', !current, vscode.ConfigurationTarget.Global);
             provider.refresh();
@@ -26,7 +26,7 @@ export function activate(context: vscode.ExtensionContext) {
     );
 
     context.subscriptions.push(
-        vscode.commands.registerCommand('pythonCodeLensLite.refresh', () => {
+        vscode.commands.registerCommand('usageLens.refresh', () => {
             provider.refresh();
         })
     );
@@ -34,7 +34,7 @@ export function activate(context: vscode.ExtensionContext) {
     // Watch Configurations
     context.subscriptions.push(
         vscode.workspace.onDidChangeConfiguration((e) => {
-            if (e.affectsConfiguration('pythonCodeLensLite')) {
+            if (e.affectsConfiguration('usageLens')) {
                 invalidateConfigCache();
                 provider.refresh();
             }
@@ -44,7 +44,7 @@ export function activate(context: vscode.ExtensionContext) {
     // Watch Documents
     context.subscriptions.push(
         vscode.workspace.onDidChangeTextDocument((e) => {
-            if (e.document.languageId !== 'python') {
+            if (!getConfig(e.document.uri).languages.includes(e.document.languageId)) {
                 return;
             }
 
@@ -75,6 +75,15 @@ export function activate(context: vscode.ExtensionContext) {
             invalidateConfigCache(doc.uri);
         })
     );
+
+    // Re-query after switching editors and during initial language-server indexing.
+    context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(editor => {
+        if (editor && getConfig(editor.document.uri).languages.includes(editor.document.languageId)) { provider.refresh(editor.document.uri); }
+    }));
+    const startupTimers = [2000, 5000, 10000, 20000, 40000].map(delay =>
+        setTimeout(() => provider.refresh(), delay)
+    );
+    context.subscriptions.push({ dispose: () => startupTimers.forEach(clearTimeout) });
 
     // Watch Folders
     context.subscriptions.push(

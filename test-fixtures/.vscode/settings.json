@@ -1,0 +1,12 @@
+{
+  "python.languageServer": "Pylance",
+  "ty.disableLanguageServices": true,
+  "python.analysis.typeCheckingMode": "off",
+  "python.analysis.indexing": true,
+  "python.analysis.diagnosticMode": "workspace",
+  "files.associations": {
+    "*.pcss": "css"
+  },
+  "typescript.referencesCodeLens.enabled": false,
+  "javascript.referencesCodeLens.enabled": false
+}

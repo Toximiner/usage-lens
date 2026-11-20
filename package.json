@@ -1,149 +1,150 @@
 {
-  "name": "python-codelens",
-  "displayName": "Python Code Lens - Lite",
+  "name": "usage-lens",
+  "displayName": "Usage Lens",
   "icon": "icon.png",
-  "description": "Lightweight, optimized CodeLens for Python references, implementations, and scoped imports.",
-  "version": "0.1.5",
+  "description": "Reference counts for Python, TypeScript, JavaScript and other languages, without blank CodeLens rows.",
+  "version": "0.1.0",
   "categories": [
     "Programming Languages",
     "Other"
   ],
   "keywords": [
-    "python",
     "codelens",
-    "code lens",
     "references",
-    "peek references",
-    "pylance"
+    "usages",
+    "python",
+    "typescript",
+    "react",
+    "css"
   ],
   "activationEvents": [
-    "onLanguage:python"
+    "onStartupFinished"
   ],
   "bugs": {
-    "url": "https://github.com/rafaelpeter03/python-codelens-lite/issues"
+    "url": "https://github.com/Toximiner/usage-lens/issues"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/rafaelpeter03/python-codelens-lite"
+    "url": "https://github.com/Toximiner/usage-lens"
   },
   "license": "MIT",
   "author": {
     "name": "RafaelPeter",
     "url": "https://github.com/rafaelpeter03"
   },
-  "publisher": "rafaelpeter",
+  "publisher": "Toximiner",
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "pythonCodeLensLite.toggle",
+        "command": "usageLens.toggle",
         "title": "%command.toggle.title%"
       },
       {
-        "command": "pythonCodeLensLite.refresh",
+        "command": "usageLens.refresh",
         "title": "%command.refresh.title%"
       }
     ],
     "configuration": {
       "title": "%config.title%",
       "properties": {
-        "pythonCodeLensLite.enable": {
+        "usageLens.enable": {
           "type": "boolean",
           "default": true,
           "description": "%config.enable.description%",
           "scope": "resource"
         },
-        "pythonCodeLensLite.files.includeInitPy": {
+        "usageLens.files.includeInitPy": {
           "type": "boolean",
           "default": true,
           "description": "%config.files.includeInitPy.description%",
           "scope": "resource"
         },
-        "pythonCodeLensLite.targets.classes": {
+        "usageLens.targets.classes": {
           "type": "boolean",
           "default": true,
           "description": "%config.targets.classes.description%",
           "scope": "resource"
         },
-        "pythonCodeLensLite.targets.methods": {
+        "usageLens.targets.methods": {
           "type": "boolean",
           "default": true,
           "description": "%config.targets.methods.description%",
           "scope": "resource"
         },
-        "pythonCodeLensLite.targets.functions": {
+        "usageLens.targets.functions": {
           "type": "boolean",
           "default": true,
           "description": "%config.targets.functions.description%",
           "scope": "resource"
         },
-        "pythonCodeLensLite.targets.moduleVariables": {
+        "usageLens.targets.moduleVariables": {
           "type": "boolean",
-          "default": false,
+          "default": true,
           "description": "%config.targets.moduleVariables.description%",
           "scope": "resource"
         },
-        "pythonCodeLensLite.targets.imports.project": {
+        "usageLens.targets.imports.project": {
           "type": "boolean",
           "default": false,
           "description": "%config.targets.imports.project.description%",
           "scope": "resource"
         },
-        "pythonCodeLensLite.targets.imports.venv": {
+        "usageLens.targets.imports.venv": {
           "type": "boolean",
           "default": false,
           "description": "%config.targets.imports.venv.description%",
           "scope": "resource"
         },
-        "pythonCodeLensLite.targets.imports.stdlib": {
+        "usageLens.targets.imports.stdlib": {
           "type": "boolean",
           "default": false,
           "description": "%config.targets.imports.stdlib.description%",
           "scope": "resource"
         },
-        "pythonCodeLensLite.targets.imports.global": {
+        "usageLens.targets.imports.global": {
           "type": "boolean",
           "default": false,
           "description": "%config.targets.imports.global.description%",
           "scope": "resource"
         },
-        "pythonCodeLensLite.references.filterImports": {
+        "usageLens.references.filterImports": {
           "type": "boolean",
-          "default": true,
+          "default": false,
           "description": "%config.references.filterImports.description%",
           "scope": "resource"
         },
-        "pythonCodeLensLite.references.filterDefinitions": {
+        "usageLens.references.filterDefinitions": {
           "type": "boolean",
           "default": true,
           "description": "%config.references.filterDefinitions.description%",
           "scope": "resource"
         },
-        "pythonCodeLensLite.references.filterSelf": {
+        "usageLens.references.filterSelf": {
           "type": "boolean",
           "default": false,
           "description": "%config.references.filterSelf.description%",
           "scope": "resource"
         },
-        "pythonCodeLensLite.references.minCount": {
+        "usageLens.references.minCount": {
           "type": "number",
           "default": 0,
           "description": "%config.references.minCount.description%",
           "scope": "resource"
         },
-        "pythonCodeLensLite.references.showZero": {
+        "usageLens.references.showZero": {
           "type": "boolean",
-          "default": true,
+          "default": false,
           "description": "%config.references.showZero.description%",
           "scope": "resource"
         },
-        "pythonCodeLensLite.lenses.showImplementations": {
+        "usageLens.lenses.showImplementations": {
           "type": "boolean",
-          "default": true,
+          "default": false,
           "description": "%config.lenses.showImplementations.description%",
           "scope": "resource"
         },
-        "pythonCodeLensLite.clickAction": {
+        "usageLens.clickAction": {
           "type": "string",
           "enum": [
             "peek",
@@ -153,19 +154,19 @@
           "description": "%config.clickAction.description%",
           "scope": "resource"
         },
-        "pythonCodeLensLite.performance.debounceMs": {
+        "usageLens.performance.debounceMs": {
           "type": "number",
           "default": 200,
           "description": "%config.performance.debounceMs.description%",
           "scope": "resource"
         },
-        "pythonCodeLensLite.performance.maxFileSizeKB": {
+        "usageLens.performance.maxFileSizeKB": {
           "type": "number",
           "default": 10240,
           "description": "%config.performance.maxFileSizeKB.description%",
           "scope": "resource"
         },
-        "pythonCodeLensLite.exclude": {
+        "usageLens.exclude": {
           "type": "array",
           "items": {
             "type": "string"
@@ -174,9 +175,38 @@
             "**/.venv/**",
             "**/venv/**",
             "**/site-packages/**",
-            "**/__pycache__/**"
+            "**/__pycache__/**",
+            "**/node_modules/**",
+            "**/dist/**",
+            "**/build/**",
+            ".git/**"
           ],
           "description": "%config.exclude.description%",
+          "scope": "resource"
+        },
+        "usageLens.languages": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "python",
+            "typescript",
+            "typescriptreact",
+            "javascript",
+            "javascriptreact",
+            "css",
+            "scss",
+            "less",
+            "postcss"
+          ],
+          "description": "Language IDs to enable. Each language needs document symbol and reference providers. PostCSS requires a matching provider or CSS language mode.",
+          "scope": "resource"
+        },
+        "usageLens.targets.types": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show counts for interfaces, type aliases, enums and structs.",
           "scope": "resource"
         }
       }
@@ -186,17 +216,16 @@
     "check": "tsc --noEmit",
     "lint": "eslint src",
     "test:imports": "node scripts/test-import-detector.mjs",
-    "verify": "npm run check && npm run lint && npm run test:imports",
+    "verify": "npm run check && npm run lint && npm run test:imports && npm run test:provider",
     "test": "npm run verify",
     "precommit": "npm run verify",
     "prepush": "npm run verify",
     "compile": "node esbuild.mjs",
     "prepublish": "npm run test && npm run compile -- --production",
     "watch": "node esbuild.mjs --watch",
-    "package": "vsce package",
-    "publish": "npm run prepublish && vsce publish patch",
-    "release": "git push && npm run publish",
-    "prepare": "husky"
+    "package": "npm run prepublish && vsce package --no-dependencies",
+    "prepare": "husky",
+    "test:provider": "node scripts/test-provider.mjs"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.0.2",
@@ -207,7 +236,7 @@
     "@types/vscode": "1.96.0",
     "@typescript-eslint/eslint-plugin": "8.59.3",
     "@typescript-eslint/parser": "8.61.0",
-    "@vscode/vsce": "3.9.2",
+    "@vscode/vsce": "4.1.1",
     "esbuild": "0.28.0",
     "eslint": "10.4.1",
     "husky": "9.1.7",

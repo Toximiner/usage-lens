@@ -1,196 +1,58 @@
-# Python CodeLens Lite
+# Usage Lens
 
-**Lightweight, configurable CodeLens for Python** — shows references, implementations, and scoped imports directly above each symbol.
-
-> Powered entirely by VS Code's native `DocumentSymbolProvider` and `ReferenceProvider` (Pylance / Pyright). No extra runtime dependencies.
-
-![alt](banner.png)
-
----
+Reference counts above symbols, without blank rows for hidden CodeLens entries.
 
 ## Features
 
-- **Reference counts** above classes, methods, functions, variables, and imports.
-- **Implementation counts** for classes (how many subclasses inherit from them).
-- **Scoped import lenses** with fine-grained classification: project, venv, stdlib, or global.
-- **Smart filtering** — exclude import statements, the definition itself, or self-references from the count.
-- **Click action** — open an inline peek view or jump to a matching reference.
-- **Per-resource configuration** — different settings per workspace folder or file.
-- **Performance guards** — shared symbol/reference caching, configurable debounce delay, targeted symbol invalidation, and file-size limit.
-- **Localized UI** — settings descriptions and command titles are shown in **English** or **Brazilian Portuguese** automatically based on your VS Code display language.
+- Hide zero-reference counts **and their reserved rows** by default.
+- Include imports and exclude declarations by default.
+- Python classes, methods and functions; TypeScript / JavaScript symbols, including React components, interfaces and enums.
+- CSS-family symbols where a language server provides document symbols and references.
+- Click counts to open references preview or choose direct navigation.
+- Limit concurrent reference queries, deduplicate results and retry during initial language-server indexing.
+- No telemetry, project execution or network uploads. Language servers determine references.
 
----
+## Language support
 
-## Requirements
+| Language | Provider |
+| --- | --- |
+| Python | Pylance, ty or another symbol/reference provider |
+| TypeScript, TSX, JavaScript, JSX | VS Code built-in TypeScript language features |
+| CSS, SCSS, Less | VS Code built-in CSS language features; references are typically limited to the current stylesheet |
+| PostCSS (`.pcss`) | A provider supporting `postcss`, or CSS language mode via `files.associations`; parser support for custom mixins is provider-dependent |
+| Other languages | Add language IDs to `usageLens.languages`; a symbol/reference provider is required |
 
-- VS Code `1.96.0` or later.
-- A Python language server that provides references (e.g. **Pylance** or **Pyright**).  
-  Without one, all counts will show `0 references`.
+CSS selector occurrences are not automatically equivalent to HTML / JSX `className` uses. This extension does not guess cross-language uses by text matching. Unsupported symbols produce no counts or extra rows.
 
----
-
-## Installation
-
-**From the Marketplace:**  
-Search for `Python CodeLens Lite` in the VS Code Extensions view.
-
-**From a `.vsix` file:**
-```bash
-npm run package   # generates python-codelens-lite-x.x.x.vsix
-```
-Then: **Extensions → ··· → Install from VSIX…**
-
----
-
-## Commands
-
-| Command | Description |
-|---|---|
-| `Python CodeLens Lite: Toggle CodeLens` | Enable / disable the extension globally. |
-| `Python CodeLens Lite: Refresh Lenses` | Force-refresh all CodeLenses in the active editor. |
-
-Access via the Command Palette (`Ctrl+Shift+P` / `⌘⇧P`).
-
----
+Disable **Python Code Lens - Lite** in the workspace to avoid duplicate Python lenses.
 
 ## Settings
 
-All settings support `resource` scope (per-folder or per-file overrides via `.vscode/settings.json`).
+| Setting | Default |
+| --- | --- |
+| `usageLens.references.showZero` | `false` |
+| `usageLens.references.minCount` | `0` |
+| `usageLens.references.filterImports` | `false` |
+| `usageLens.references.filterDefinitions` | `true` |
+| `usageLens.lenses.showImplementations` | `false` (Python-only) |
+| `usageLens.clickAction` | `"peek"` |
 
-### General
+**Usage Lens: Refresh Lenses** clears cached counts. Indexing may take time on large projects.
 
-| Setting | Default | Description |
-|---|---|---|
-| `pythonCodeLensLite.enable` | `true` | Enable or disable the extension. |
-| `pythonCodeLensLite.files.includeInitPy` | `true` | Include `__init__.py` files when showing CodeLens and counting references. |
-| `pythonCodeLensLite.clickAction` | `"peek"` | `"peek"` opens an inline peek view; `"reveal"` jumps to a matching reference in the editor. |
+## Build
 
-### Targets — which symbols get a lens
-
-| Setting | Default | Description |
-|---|---|---|
-| `pythonCodeLensLite.targets.classes` | `true` | CodeLens for `class` definitions. |
-| `pythonCodeLensLite.targets.methods` | `true` | CodeLens for methods (functions inside classes). |
-| `pythonCodeLensLite.targets.functions` | `true` | CodeLens for top-level functions. |
-| `pythonCodeLensLite.targets.moduleVariables` | `false` | CodeLens for module-level variables / constants. |
-| `pythonCodeLensLite.targets.imports.project` | `false` | CodeLens for imports from within the workspace. |
-| `pythonCodeLensLite.targets.imports.venv` | `false` | CodeLens for imports from virtual environments. |
-| `pythonCodeLensLite.targets.imports.stdlib` | `false` | CodeLens for standard library imports. |
-| `pythonCodeLensLite.targets.imports.global` | `false` | CodeLens for imports that cannot be classified. |
-
-### References — filtering
-
-| Setting | Default | Description |
-|---|---|---|
-| `pythonCodeLensLite.references.filterImports` | `true` | Exclude occurrences inside `import`/`from` statements. |
-| `pythonCodeLensLite.references.filterDefinitions` | `true` | Exclude the definition's own location from the count. |
-| `pythonCodeLensLite.references.filterSelf` | `false` | Exclude references inside the symbol's own scope. |
-| `pythonCodeLensLite.references.minCount` | `0` | Hide lens when filtered count is below this value. |
-| `pythonCodeLensLite.references.showZero` | `true` | Hide lenses with exactly zero references when `false`. |
-
-### Lenses
-
-| Setting | Default | Description |
-|---|---|---|
-| `pythonCodeLensLite.lenses.showImplementations` | `true` | Show a second lens with the subclass count for classes. |
-
-### Performance
-
-| Setting | Default | Description |
-|---|---|---|
-| `pythonCodeLensLite.performance.debounceMs` | `200` | Milliseconds to wait after typing before refreshing. |
-| `pythonCodeLensLite.performance.maxFileSizeKB` | `10240` | Skip files larger than this size (in KB). Use `0` to disable this guard. |
-
-### Exclusions
-
-| Setting | Default | Description |
-|---|---|---|
-| `pythonCodeLensLite.exclude` | `["**/.venv/**", ...]` | Glob patterns for files that should be skipped entirely. |
-
----
-
-## Localization
-
-The extension automatically adapts to your VS Code display language:
-
-- **English** (`en`) — default.
-- **Brazilian Portuguese** (`pt-br`) — settings descriptions and command titles are shown in Portuguese when VS Code is set to `pt-BR`.
-
-To change your VS Code display language: `Configure Display Language` in the Command Palette.
-
----
-
-## Tips
-
-**Hide lenses on rarely-referenced symbols**
-```jsonc
-// .vscode/settings.json
-"pythonCodeLensLite.references.showZero": false,
-"pythonCodeLensLite.references.minCount": 2
+```sh
+npm ci --ignore-scripts
+npm test
+npm run package
 ```
 
-**See which parts of your project import a given module**
-```jsonc
-"pythonCodeLensLite.targets.imports.project": true,
-"pythonCodeLensLite.references.filterImports": false
-```
+Install the resulting VSIX with **Extensions: Install from VSIX…**.
 
-**Reduce CPU usage on large codebases**
-```jsonc
-"pythonCodeLensLite.performance.debounceMs": 500,
-"pythonCodeLensLite.performance.maxFileSizeKB": 256
-```
+## Validation
 
-**Ignore package initializer files**
-```jsonc
-"pythonCodeLensLite.files.includeInitPy": false
-```
+Unit regressions cover hidden rows, import inclusion, declaration exclusion, minimum counts, empty-result retry and cancellation. The VS Code integration suite in `scripts/test-vscode.cjs` uses fictional examples in `test-fixtures`: Python, TS, TSX, JS, JSX, CSS and PostCSS in CSS mode. It requires Pylance plus VS Code built-in TypeScript and CSS language features. No private project sources are included.
 
-**Exclude generated or vendored files**
-```jsonc
-"pythonCodeLensLite.exclude": [
-  "**/.venv/**",
-  "**/venv/**",
-  "**/site-packages/**",
-  "**/__pycache__/**",
-  "**/migrations/**",
-  "**/vendor/**"
-]
-```
+## Credits and license
 
----
-
-## How It Works
-
-1. On activation, a `CodeLensProvider` is registered for all Python (`file` scheme) documents.
-2. `provideCodeLenses` uses VS Code's `DocumentSymbolProvider` to list eligible symbols, then emits placeholder lenses.
-3. Symbol discovery is cached per document version, so repeated CodeLens passes do not re-read the same symbol tree.
-4. `resolveCodeLens` calls `vscode.executeReferenceProvider`, caches raw references per symbol position, filters results, and reuses the filtered result for repeated resolutions.
-5. Configuration is cached per URI and invalidated whenever settings change or workspace folders are added/removed.
-6. Document edits are debounced, invalidate only the edited document's symbol cache, and clear reference caches globally so counts stay consistent across files.
-
----
-
-## Contributing
-
-Issues and pull requests are welcome. The project has no runtime dependencies — keep it that way.
-
-```bash
-npm install       # install dev dependencies
-npm run check     # type-check without emitting files
-npm run compile   # bundle dist/extension.js
-npm run watch     # compile + watch
-# Press F5 in VS Code to launch an Extension Development Host
-```
-
----
-
-## Bugs reports & Features requests
-
-You can submit a bug report or a feature suggestion via [GitHub Issue Tracker](https://github.com/rafaelpeter03/python-codelens-lite/issues).
-
----
-
-## License
-
-[MIT](LICENSE)
+Fork of [Python Code Lens - Lite](https://github.com/rafaelpeter03/python-codelens-lite) by [RafaelPeter](https://github.com/rafaelpeter03), under the MIT license. Original author and license notices are retained. This fork has a separate extension ID, commands and settings.

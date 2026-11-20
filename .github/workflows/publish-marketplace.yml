@@ -1,0 +1,32 @@
+name: Publish to Visual Studio Marketplace
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+concurrency:
+  group: marketplace-publish
+jobs:
+  publish:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Validate release identity
+        run: |
+          node <<'JS'
+          const p = require('./package.json');
+          if (p.publisher !== 'Toximiner' || p.name !== 'usage-lens') throw new Error('Unexpected extension identity');
+          if (process.env.GITHUB_REF !== `refs/tags/v${p.version}`) throw new Error('Publish a matching release tag');
+          JS
+      - run: npm ci --ignore-scripts
+      - run: npm run package
+      - name: Publish with Trusted Publishing
+        run: npx --no-install vsce publish --oidc --packagePath *.vsix

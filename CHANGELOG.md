@@ -1,3 +1,15 @@
+# Changelog
+
+## 0.1.0 — Usage Lens
+
+- Fork CodeLens Lite with separate extension identity, commands and settings.
+- Add TypeScript, JavaScript, React and CSS-family language-provider support.
+- Remove hidden counters before editor layout, eliminating empty CodeLens rows.
+- Count imports and exclude declarations by default.
+- Retry initial queries and avoid caching empty language-server results indefinitely.
+
+## Upstream history
+
 # Change Log
 
 ## [0.1.5]

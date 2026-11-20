@@ -76,19 +76,32 @@ export class PythonCodeLensProvider implements vscode.CodeLensProvider {
         const eligibleSymbols = await this.getSymbols(document, config);
         if (token.isCancellationRequested) { return []; }
 
-        const lenses: vscode.CodeLens[] = [];
-
+        const candidates: SymbolCodeLens[] = [];
         for (const sym of eligibleSymbols) {
-            lenses.push(new SymbolCodeLens(sym.range, document.uri, sym));
-
-            if (config.lenses.showImplementations && sym.kind === 'class') {
-                lenses.push(new SymbolCodeLens(
-                    sym.range,
-                    document.uri,
-                    { ...sym, kind: 'class-impl' }
-                ));
+            candidates.push(new SymbolCodeLens(sym.range, document.uri, sym));
+            if (document.languageId === 'python' && config.lenses.showImplementations && sym.kind === 'class') {
+                candidates.push(new SymbolCodeLens(sym.range, document.uri, { ...sym, kind: 'class-impl' }));
             }
         }
+
+        // VS Code reserves a row for every returned lens, even an empty resolved
+        // command. Resolve before returning when counts can be hidden, so omitted
+        // lenses never enter the editor layout. Limit concurrent server requests.
+        if (config.references.showZero && config.references.minCount === 0) {
+            return candidates;
+        }
+        const resolved: (vscode.CodeLens | null)[] = new Array(candidates.length).fill(null);
+        let next = 0;
+        const worker = async () => {
+            while (!token.isCancellationRequested) {
+                const index = next++;
+                if (index >= candidates.length) { return; }
+                resolved[index] = await this.resolveCodeLens(candidates[index], token);
+            }
+        };
+        await Promise.all(Array.from({ length: Math.min(4, candidates.length) }, worker));
+        if (token.isCancellationRequested) { return []; }
+        const lenses = resolved.filter((lens): lens is vscode.CodeLens => lens !== null);
 
         return lenses;
     }
@@ -115,15 +128,13 @@ export class PythonCodeLensProvider implements vscode.CodeLensProvider {
         try {
             result = await this.resolveReferences(document, sym, config);
         } catch {
-            codeLens.command = { title: "", command: "" };
-            return codeLens;
+            return null;
         }
 
         if (token.isCancellationRequested) { return null; }
 
         if (!result) {
-            codeLens.command = { title: "", command: "" };
-            return codeLens;
+            return null;
         }
 
         const locationCommand = getLocationCommand(config.clickAction);
@@ -150,7 +161,10 @@ export class PythonCodeLensProvider implements vscode.CodeLensProvider {
             return existing;
         }
 
-        const result = this.computeReferences(document, sym, config).catch((error: unknown) => {
+        const result = this.computeReferences(document, sym, config).then(value => {
+            if (!value || value.count === 0) { this.referenceResultCache.delete(key); }
+            return value;
+        }).catch((error: unknown) => {
             this.referenceResultCache.delete(key);
             throw error;
         });
@@ -171,7 +185,20 @@ export class PythonCodeLensProvider implements vscode.CodeLensProvider {
             ? await this.getImplementationLocations(rawLocations, config, docCache)
             : rawLocations;
 
-        const filteredLocations = await applyFilters(locations, sym, config, document, docCache);
+        let uniqueLocations = [...new Map(locations.map(loc => [
+            `${loc.uri.toString()}|${loc.range.start.line}:${loc.range.start.character}-${loc.range.end.line}:${loc.range.end.character}`, loc
+        ])).values()];
+        if (config.references.filterDefinitions && document.languageId !== 'python') {
+            const definitions = await vscode.commands.executeCommand<Array<vscode.Location | vscode.LocationLink>>(
+                'vscode.executeDefinitionProvider', document.uri, sym.selectionRange.start
+            ) || [];
+            uniqueLocations = uniqueLocations.filter(loc => !definitions.some(def => {
+                const uri = 'targetUri' in def ? def.targetUri : def.uri;
+                const range = 'targetUri' in def ? (def.targetSelectionRange ?? def.targetRange) : def.range;
+                return uri.toString() === loc.uri.toString() && !!range.intersection(loc.range);
+            }));
+        }
+        const filteredLocations = await applyFilters(uniqueLocations, sym, config, document, docCache);
         const count = filteredLocations.length;
 
         if (count < config.references.minCount || (count === 0 && !config.references.showZero)) {
@@ -196,6 +223,10 @@ export class PythonCodeLensProvider implements vscode.CodeLensProvider {
         }
 
         const rawReferences = this.executeReferenceProvider(document.uri, sym.selectionRange.start)
+            .then(locations => {
+                if (locations.length === 0) { this.rawReferenceCache.delete(key); }
+                return locations;
+            })
             .catch((error: unknown) => {
                 this.rawReferenceCache.delete(key);
                 throw error;
@@ -268,7 +299,7 @@ export class PythonCodeLensProvider implements vscode.CodeLensProvider {
         document: vscode.TextDocument,
         config: ResolvedConfig
     ): Promise<boolean> {
-        if (!config.enable) {
+        if (!config.enable || !config.languages.includes(document.languageId)) {
             return false;
         }
 

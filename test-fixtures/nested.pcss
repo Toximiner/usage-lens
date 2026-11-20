@@ -1,0 +1,7 @@
+@define-mixin inset { padding: 1rem; }
+:root { --tone: orange; }
+.tile {
+    color: var(--tone);
+    &:hover { border-color: var(--tone); }
+}
+.tile { @mixin inset; }

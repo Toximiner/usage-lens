@@ -15,3 +15,11 @@ src/**
 **/esbuild.mjs
 **/package-lock.json
 **/*.vsix
+
+.github/**
+.husky/**
+scripts/**
+copilot-commit-message-instructions.md
+commitlint.config.*
+test-fixtures/**
+banner.png

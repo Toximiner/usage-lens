@@ -1,0 +1,5 @@
+:root { --accent: orange; }
+.card { color: var(--accent); }
+.card:hover { border-color: var(--accent); }
+#panel { display: grid; }
+#panel .card { padding: 1rem; }

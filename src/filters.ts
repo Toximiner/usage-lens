@@ -45,7 +45,9 @@ export async function applyFilters(
                     locDoc = await vscode.workspace.openTextDocument(loc.uri);
                     docCache.set(key, locDoc);
                 }
-                isLocImport = isLineAnImport(locDoc, loc.range.start.line);
+                isLocImport = locDoc.languageId === 'python'
+                    ? isLineAnImport(locDoc, loc.range.start.line)
+                    : /^\s*(?:import\b|export\b.*\bfrom\b)/.test(locDoc.lineAt(loc.range.start.line).text);
             } catch {
                 // Ignore locations that cannot be opened.
             }

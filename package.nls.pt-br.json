@@ -1,7 +1,7 @@
 {
-  "command.toggle.title": "Python CodeLens Lite: Alternar CodeLens",
-  "command.refresh.title": "Python CodeLens Lite: Atualizar Lentes",
-  "config.title": "Python CodeLens Lite",
+  "command.toggle.title": "Usage Lens: Alternar CodeLens",
+  "command.refresh.title": "Usage Lens: Atualizar Lentes",
+  "config.title": "Usage Lens",
   "config.enable.description": "Ativa ou desativa todos os recursos de CodeLens desta extensão.",
   "config.files.includeInitPy.description": "Inclui arquivos __init__.py ao exibir CodeLens e contar referências.",
   "config.targets.classes.description": "Exibe CodeLens para definições de 'class'.",
