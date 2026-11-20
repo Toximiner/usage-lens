@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.3
+
+- Add real Python, TypeScript and CSS screenshots using fictional examples.
+- Explain visible counts, hidden unused symbols and CSS provider limitations.
+
 ## 0.1.2
 
 - Use the available display name Universal Usage Lens for the initial Marketplace release.

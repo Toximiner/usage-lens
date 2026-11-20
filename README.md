@@ -12,6 +12,28 @@ Reference counts above symbols, without blank rows for hidden CodeLens entries.
 - Limit concurrent reference queries, deduplicate results and retry during initial language-server indexing.
 - No telemetry, project execution or network uploads. Language servers determine references.
 
+## Screenshots
+
+Real VS Code captures from an isolated profile using a fictional library example. The code and comments were created specifically for these screenshots. Theme: [Quiet Ember Theme](https://marketplace.visualstudio.com/items?itemName=Toximiner.quiet-ember-theme).
+
+### Python: imports count, unused symbols stay compact
+
+The `Book` class has four references: one import, two constructor calls and one type annotation. The declaration itself is excluded. `draft_feature` is unused, so it has neither a counter nor a reserved CodeLens row. Counts are provided through Pylance.
+
+![Python reference counts above classes, methods and functions, with imports included and unused symbols hidden](docs/screenshots/python.png)
+
+### TypeScript: interfaces, classes and methods
+
+Reference counts come from VS Code's built-in TypeScript language provider. The side-by-side example shows declarations and their uses; `draftFeature` has no references and creates no extra row.
+
+![TypeScript interface, class and method reference counts next to their imports and call sites](docs/screenshots/typescript.png)
+
+### CSS: provider-backed selector references
+
+The built-in CSS language provider finds selector references within this stylesheet. These counts do not imply automatic tracking of HTML or JSX class names.
+
+![CSS selector reference counts supplied by the built-in CSS language provider](docs/screenshots/css.png)
+
 ## Language support
 
 | Language | Provider |

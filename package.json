@@ -3,7 +3,7 @@
   "displayName": "Universal Usage Lens",
   "icon": "icon.png",
   "description": "Reference counts for Python, TypeScript, JavaScript and other languages, without blank CodeLens rows.",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "categories": [
     "Programming Languages",
     "Other"
