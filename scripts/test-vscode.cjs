@@ -10,6 +10,13 @@ exports.run=async()=>{
   for(const [file,needed] of [['library.py','2 references'],['catalog.ts',null],['app.tsx',null],['helper.js',null],['widget.jsx',null],['colors.css',null],['nested.pcss',null]]){
    const doc=await vscode.workspace.openTextDocument(path.join(base,file));await vscode.window.showTextDocument(doc);
    let lenses=[],symbols=[];
+   for(let ready=0;ready<100;ready++){
+    symbols=await vscode.commands.executeCommand('vscode.executeDocumentSymbolProvider',doc.uri)||[];
+    const references=file==='library.py'?await vscode.commands.executeCommand('vscode.executeReferenceProvider',doc.uri,new vscode.Position(4,5)):null;
+    if(symbols.length&&(references===null||references.length>=3))break;
+    await new Promise(r=>setTimeout(r,500));
+   }
+
    for(let i=0;i<60;i++){
     await vscode.commands.executeCommand('usageLens.refresh');
     lenses=await vscode.commands.executeCommand('vscode.executeCodeLensProvider',doc.uri,100)||[];

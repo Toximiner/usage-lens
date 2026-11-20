@@ -1,7 +1,7 @@
 {
-  "command.toggle.title": "Usage Lens: Toggle CodeLens",
-  "command.refresh.title": "Usage Lens: Refresh Lenses",
-  "config.title": "Usage Lens",
+  "command.toggle.title": "Universal Usage Lens: Toggle CodeLens",
+  "command.refresh.title": "Universal Usage Lens: Refresh Lenses",
+  "config.title": "Universal Usage Lens",
   "config.enable.description": "Enable or disable all CodeLens features provided by this extension.",
   "config.files.includeInitPy.description": "Include __init__.py files when showing CodeLens and counting references.",
   "config.targets.classes.description": "Show CodeLens for 'class' definitions.",

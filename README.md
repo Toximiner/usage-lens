@@ -1,4 +1,4 @@
-# Usage Lens
+# Universal Usage Lens
 
 Reference counts above symbols, without blank rows for hidden CodeLens entries.
 
@@ -37,7 +37,7 @@ Disable **Python Code Lens - Lite** in the workspace to avoid duplicate Python l
 | `usageLens.lenses.showImplementations` | `false` (Python-only) |
 | `usageLens.clickAction` | `"peek"` |
 
-**Usage Lens: Refresh Lenses** clears cached counts. Indexing may take time on large projects.
+**Universal Usage Lens: Refresh Lenses** clears cached counts. Indexing may take time on large projects.
 
 ## Build
 

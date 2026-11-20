@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.2
+
+- Use the available display name Universal Usage Lens for the initial Marketplace release.
+
 ## 0.1.1
 
 - Use the Marketplace identifier `Toximiner.universal-usage-lens`; the original identifier was already taken.
