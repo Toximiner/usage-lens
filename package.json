@@ -1,9 +1,9 @@
 {
-  "name": "usage-lens",
+  "name": "universal-usage-lens",
   "displayName": "Usage Lens",
   "icon": "icon.png",
   "description": "Reference counts for Python, TypeScript, JavaScript and other languages, without blank CodeLens rows.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "categories": [
     "Programming Languages",
     "Other"

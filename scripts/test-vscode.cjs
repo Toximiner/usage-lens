@@ -4,7 +4,7 @@ exports.run=async()=>{
  const previousInterpreter=vscode.workspace.getConfiguration().inspect('python.defaultInterpreterPath')?.workspaceValue;
  try {
   if(process.env.USAGE_LENS_PYTHON)await vscode.workspace.getConfiguration().update('python.defaultInterpreterPath',process.env.USAGE_LENS_PYTHON,vscode.ConfigurationTarget.Workspace);
-  for(const id of ['ms-python.python','ms-python.vscode-pylance','vscode.typescript-language-features','vscode.css-language-features','Toximiner.usage-lens']) await vscode.extensions.getExtension(id).activate();
+  for(const id of ['ms-python.python','ms-python.vscode-pylance','vscode.typescript-language-features','vscode.css-language-features','Toximiner.universal-usage-lens']) await vscode.extensions.getExtension(id).activate();
   const base=vscode.workspace.workspaceFolders[0].uri.fsPath;
   for(const file of ['library.py','reader.py','catalog.ts','app.tsx','helper.js','widget.jsx','colors.css','nested.pcss']) await vscode.workspace.openTextDocument(path.join(base,file));
   for(const [file,needed] of [['library.py','2 references'],['catalog.ts',null],['app.tsx',null],['helper.js',null],['widget.jsx',null],['colors.css',null],['nested.pcss',null]]){

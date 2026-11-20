@@ -23,7 +23,7 @@ jobs:
         run: |
           node <<'JS'
           const p = require('./package.json');
-          if (p.publisher !== 'Toximiner' || p.name !== 'usage-lens') throw new Error('Unexpected extension identity');
+          if (p.publisher !== 'Toximiner' || p.name !== 'universal-usage-lens') throw new Error('Unexpected extension identity');
           if (process.env.GITHUB_REF !== `refs/tags/v${p.version}`) throw new Error('Publish a matching release tag');
           JS
       - run: npm ci --ignore-scripts

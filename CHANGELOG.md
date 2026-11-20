@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.1
+
+- Use the Marketplace identifier `Toximiner.universal-usage-lens`; the original identifier was already taken.
+- Keep the display name Usage Lens and the `usageLens` settings unchanged.
+
 ## 0.1.0 — Usage Lens
 
 - Fork CodeLens Lite with separate extension identity, commands and settings.
