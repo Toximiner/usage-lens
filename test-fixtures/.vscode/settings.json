@@ -8,5 +8,8 @@
     "*.pcss": "css"
   },
   "typescript.referencesCodeLens.enabled": false,
-  "javascript.referencesCodeLens.enabled": false
+  "javascript.referencesCodeLens.enabled": false,
+  "usageLens.displayMode": "inline",
+  "python.analysis.referencesCodeLens": false,
+  "editor.fontSize": 16
 }

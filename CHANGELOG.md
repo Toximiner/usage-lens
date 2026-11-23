@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.4
+
+- Show usage counts inline by default, with CodeLens available as an alternate display mode.
+- Label counts as usages and refresh Python, TypeScript and CSS screenshots.
+- Document inline hint font sizing and optional transparent background customization.
+
 ## 0.1.3
 
 - Add real Python, TypeScript and CSS screenshots using fictional examples.

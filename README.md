@@ -1,14 +1,15 @@
 # Universal Usage Lens
 
-Reference counts above symbols, without blank rows for hidden CodeLens entries.
+Inline usage counts beside symbols, with CodeLens available as an alternate display mode.
 
 ## Features
 
-- Hide zero-reference counts **and their reserved rows** by default.
+- Hide zero-usage counts **and their reserved rows** by default.
 - Include imports and exclude declarations by default.
 - Python classes, methods and functions; TypeScript / JavaScript symbols, including React components, interfaces and enums.
 - CSS-family symbols where a language server provides document symbols and references.
-- Click counts to open references preview or choose direct navigation.
+- Show usage counts inline at the end of declaration lines by default; optionally display them above declarations as CodeLens.
+- Click counts to preview usages or choose direct navigation.
 - Limit concurrent reference queries, deduplicate results and retry during initial language-server indexing.
 - No telemetry, project execution or network uploads. Language servers determine references.
 
@@ -18,21 +19,21 @@ Real VS Code captures from an isolated profile using a fictional library example
 
 ### Python: imports count, unused symbols stay compact
 
-The `Book` class has four references: one import, two constructor calls and one type annotation. The declaration itself is excluded. `draft_feature` is unused, so it has neither a counter nor a reserved CodeLens row. Counts are provided through Pylance.
+The `Book` class has three usages: one import and two constructor calls. The declaration itself is excluded. `draft_feature` is unused, so it has neither a counter nor a reserved CodeLens row. Counts are provided through Pylance.
 
-![Python reference counts above classes, methods and functions, with imports included and unused symbols hidden](docs/screenshots/python.png)
+![Inline Python usage counts after classes, methods and functions, with imports included and unused symbols hidden](docs/screenshots/python.png)
 
 ### TypeScript: interfaces, classes and methods
 
-Reference counts come from VS Code's built-in TypeScript language provider. The side-by-side example shows declarations and their uses; `draftFeature` has no references and creates no extra row.
+Usage counts come from VS Code's built-in TypeScript language provider. The side-by-side example shows declarations and their uses; `draftFeature` has no usages and creates no extra row.
 
-![TypeScript interface, class and method reference counts next to their imports and call sites](docs/screenshots/typescript.png)
+![Inline TypeScript interface, class and method usage counts beside their declarations](docs/screenshots/typescript.png)
 
-### CSS: provider-backed selector references
+### CSS: provider-backed selector usages
 
-The built-in CSS language provider finds selector references within this stylesheet. These counts do not imply automatic tracking of HTML or JSX class names.
+The built-in CSS language provider finds selector usages within this stylesheet. These counts do not imply automatic tracking of HTML or JSX class names.
 
-![CSS selector reference counts supplied by the built-in CSS language provider](docs/screenshots/css.png)
+![Inline CSS selector usage counts supplied by the built-in CSS language provider](docs/screenshots/css.png)
 
 ## Language support
 
@@ -53,6 +54,7 @@ Disable **Python Code Lens - Lite** in the workspace to avoid duplicate Python l
 | Setting | Default |
 | --- | --- |
 | `usageLens.references.showZero` | `false` |
+| `usageLens.displayMode` | `"inline"` |
 | `usageLens.references.minCount` | `0` |
 | `usageLens.references.filterImports` | `false` |
 | `usageLens.references.filterDefinitions` | `true` |
@@ -60,6 +62,20 @@ Disable **Python Code Lens - Lite** in the workspace to avoid duplicate Python l
 | `usageLens.clickAction` | `"peek"` |
 
 **Universal Usage Lens: Refresh Lenses** clears cached counts. Indexing may take time on large projects.
+
+If inline counts are not visible, check that VS Code's `editor.inlayHints.enabled` setting is not set to `off`.
+
+Inline usage counts use VS Code's `editor.inlayHints.fontSize` setting. For a more subtle appearance, set it one step below the editor text size (for example, `12` when `editor.fontSize` is `16`). To match CodeLens exactly, set it to the same numeric value as `editor.codeLensFontSize`.
+
+If your theme gives inline hints a visible background, you can make it transparent with VS Code's global theme customization:
+
+```json
+"workbench.colorCustomizations": {
+  "editorInlayHint.background": "#00000000"
+}
+```
+
+This affects all inline hints, not only Usage Lens.
 
 ## Build
 

@@ -22,9 +22,11 @@ interface ReferenceResult {
     title: string;
 }
 
-export class PythonCodeLensProvider implements vscode.CodeLensProvider {
+export class PythonCodeLensProvider implements vscode.CodeLensProvider, vscode.InlayHintsProvider {
     private _onDidChangeCodeLenses: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
     public readonly onDidChangeCodeLenses: vscode.Event<void> = this._onDidChangeCodeLenses.event;
+    private _onDidChangeInlayHints: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
+    public readonly onDidChangeInlayHints: vscode.Event<void> = this._onDidChangeInlayHints.event;
 
     private readonly symbolCache = new Map<string, Promise<EligibleSymbol[]>>();
     private readonly rawReferenceCache = new Map<string, Promise<vscode.Location[]>>();
@@ -33,6 +35,7 @@ export class PythonCodeLensProvider implements vscode.CodeLensProvider {
     public refresh(uri?: vscode.Uri) {
         this.invalidate(uri);
         this._onDidChangeCodeLenses.fire();
+        this._onDidChangeInlayHints.fire();
     }
 
     public refreshAfterDocumentChange(uri: vscode.Uri) {
@@ -40,6 +43,7 @@ export class PythonCodeLensProvider implements vscode.CodeLensProvider {
         this.rawReferenceCache.clear();
         this.referenceResultCache.clear();
         this._onDidChangeCodeLenses.fire();
+        this._onDidChangeInlayHints.fire();
     }
 
     public invalidate(uri?: vscode.Uri) {
@@ -61,6 +65,7 @@ export class PythonCodeLensProvider implements vscode.CodeLensProvider {
         this.rawReferenceCache.clear();
         this.referenceResultCache.clear();
         this._onDidChangeCodeLenses.dispose();
+        this._onDidChangeInlayHints.dispose();
     }
 
     public async provideCodeLenses(
@@ -69,7 +74,7 @@ export class PythonCodeLensProvider implements vscode.CodeLensProvider {
     ): Promise<vscode.CodeLens[]> {
         const config = getConfig(document.uri);
 
-        if (!(await this.isDocumentEligible(document, config))) {
+        if (config.displayMode !== 'codeLens' || !(await this.isDocumentEligible(document, config))) {
             return [];
         }
 
@@ -104,6 +109,60 @@ export class PythonCodeLensProvider implements vscode.CodeLensProvider {
         const lenses = resolved.filter((lens): lens is vscode.CodeLens => lens !== null);
 
         return lenses;
+    }
+
+    public async provideInlayHints(
+        document: vscode.TextDocument,
+        range: vscode.Range,
+        token: vscode.CancellationToken
+    ): Promise<vscode.InlayHint[]> {
+        const config = getConfig(document.uri);
+        if (config.displayMode !== 'inline' || !(await this.isDocumentEligible(document, config))) {
+            return [];
+        }
+
+        const symbols = await this.getSymbols(document, config);
+        if (token.isCancellationRequested) { return []; }
+        const candidates: EligibleSymbol[] = [];
+        for (const sym of symbols) {
+            if (sym.range.start.line >= range.start.line && sym.range.start.line <= range.end.line) {
+                candidates.push(sym);
+                if (document.languageId === 'python' && config.lenses.showImplementations && sym.kind === 'class') {
+                    candidates.push({ ...sym, kind: 'class-impl' });
+                }
+            }
+        }
+
+        const hints: (vscode.InlayHint | null)[] = new Array(candidates.length).fill(null);
+        let next = 0;
+        const worker = async () => {
+            while (!token.isCancellationRequested) {
+                const index = next++;
+                if (index >= candidates.length) { return; }
+                const sym = candidates[index];
+                try {
+                    const result = await this.resolveReferences(document, sym, config);
+                    if (!result || token.isCancellationRequested) { continue; }
+                    const lineEnd = document.lineAt(sym.selectionRange.start.line).range.end;
+                    const part = new vscode.InlayHintLabelPart(` · ${result.title}`);
+                    if (result.count > 0) {
+                        const locationCommand = getLocationCommand(config.clickAction);
+                        part.command = {
+                            title: result.title,
+                            command: locationCommand.command,
+                            arguments: [document.uri, sym.selectionRange.start, result.locations, locationCommand.mode]
+                        };
+                    }
+                    const hint = new vscode.InlayHint(lineEnd, [part]);
+                    hint.paddingLeft = true;
+                    hints[index] = hint;
+                } catch {
+                    // A temporarily unavailable language server should not reserve an inline hint.
+                }
+            }
+        };
+        await Promise.all(Array.from({ length: Math.min(4, candidates.length) }, worker));
+        return token.isCancellationRequested ? [] : hints.filter((hint): hint is vscode.InlayHint => hint !== null);
     }
 
     public async resolveCodeLens(
@@ -351,7 +410,7 @@ export class PythonCodeLensProvider implements vscode.CodeLensProvider {
             return `${count} ${count === 1 ? 'implementation' : 'implementations'}`;
         }
 
-        return `${count} ${count === 1 ? 'reference' : 'references'}`;
+        return `${count} ${count === 1 ? 'usage' : 'usages'}`;
     }
 
     private deleteCacheEntries<T>(cache: Map<string, T>, prefix: string): void {

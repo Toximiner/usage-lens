@@ -13,7 +13,11 @@ export function activate(context: vscode.ExtensionContext) {
         { scheme: 'file' },
         provider
     );
-    context.subscriptions.push(codeLensProvider, provider);
+    const inlayHintsProvider = vscode.languages.registerInlayHintsProvider(
+        { scheme: 'file' },
+        provider
+    );
+    context.subscriptions.push(codeLensProvider, inlayHintsProvider, provider);
 
     // Register Commands
     context.subscriptions.push(

@@ -3,6 +3,7 @@ import type { Category } from './classifier';
 
 export interface ResolvedConfig {
     enable: boolean;
+    displayMode: 'inline' | 'codeLens';
     languages: string[];
     files: {
         includeInitPy: boolean;
@@ -49,6 +50,7 @@ export function getConfig(uri?: vscode.Uri): ResolvedConfig {
     const config = vscode.workspace.getConfiguration('usageLens', uri);
     const resolved: ResolvedConfig = {
         enable: config.get<boolean>('enable', true),
+        displayMode: config.get<'inline' | 'codeLens'>('displayMode', 'inline'),
         languages: config.get<string[]>('languages', ['python','typescript','typescriptreact','javascript','javascriptreact','css','scss','less','postcss']),
         files: {
             includeInitPy: config.get<boolean>('files.includeInitPy', true),
